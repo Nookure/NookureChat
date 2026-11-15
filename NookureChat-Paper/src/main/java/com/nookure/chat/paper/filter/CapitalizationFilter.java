@@ -8,26 +8,31 @@ import com.nookure.chat.api.config.ConfigurationContainer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-@ChatFilterData(
-    name = "capitalization"
-)
+@ChatFilterData(name = "capitalization")
 public class CapitalizationFilter extends ChatFilter {
-  @Inject
-  private ConfigurationContainer<Config> config;
+    @Inject
+    private ConfigurationContainer<Config> config;
 
-  @Override
-  public boolean check(@NotNull Player player, @NotNull String message) {
-    return true;
-  }
-
-  @Override
-  public String modify(@NotNull Player player, @NotNull String message) {
-    message = message.substring(0, 1).toUpperCase() + message.substring(1).toLowerCase();
-
-    if (config.get().filters.capitalization.addDot()) {
-      message = message + ".";
+    @Override
+    public boolean check(@NotNull Player player, @NotNull String message) {
+        return true;
     }
 
-    return message;
-  }
+    @Override
+    public String modify(@NotNull Player player, @NotNull String message) {
+        if (message.isBlank()) {
+            return message;
+        }
+
+        message = Character.toUpperCase(message.charAt(0)) + message.substring(1);
+
+        if (config.get().filters.capitalization.addDot()) {
+            char lastChar = message.charAt(message.length() - 1);
+            if (lastChar != '.' && lastChar != '!' && lastChar != '?') {
+                message = message + ".";
+            }
+        }
+
+        return message;
+    }
 }

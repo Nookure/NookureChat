@@ -1,21 +1,35 @@
 package com.nookure.chat.api.adapters;
 
 import net.luckperms.api.LuckPerms;
+import net.luckperms.api.LuckPermsProvider;
+import net.luckperms.api.model.user.User;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
-import java.util.Objects;
-
 public class LuckPermsPermissionAdaptar extends PermissionAdapter {
-  private final RegisteredServiceProvider<LuckPerms> provider = Bukkit.getServicesManager().getRegistration(LuckPerms.class);
+    @Override
+    public String getHighestGroup(Player player) {
+        try {
+            LuckPerms api;
+            try {
+                api = LuckPermsProvider.get();
+            } catch (IllegalStateException e) {
+                RegisteredServiceProvider<LuckPerms> provider =
+                        Bukkit.getServicesManager().getRegistration(LuckPerms.class);
+                api = provider != null ? provider.getProvider() : null;
+            }
+            if (api == null) {
+                return "default";
+            }
 
-  @Override
-  public String getHighestGroup(Player player) {
-    if (provider == null) {
-      throw new IllegalStateException("LuckPerms is not installed");
+            User user = api.getUserManager().getUser(player.getUniqueId());
+            if (user != null) {
+                String group = user.getPrimaryGroup();
+                return group != null ? group : "default";
+            }
+        } catch (Exception ignored) {
+        }
+        return "default";
     }
-
-    return Objects.requireNonNull(provider.getProvider().getUserManager().getUser(player.getUniqueId())).getPrimaryGroup();
-  }
 }

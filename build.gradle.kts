@@ -1,7 +1,8 @@
 plugins {
   id("java")
-  id("com.gradleup.shadow") version "8.3.5"
-  id("xyz.jpenilla.run-paper") version "2.3.1"
+  id("com.gradleup.shadow") version "9.6.1"
+  id("xyz.jpenilla.run-paper") version "3.1.0"
+  alias(libs.plugins.spotless)
 }
 
 group = "com.nookure.chat"
@@ -24,13 +25,17 @@ tasks.shadowJar {
   relocate("com.google.errorprone", "com.nookure.chat.libs.errorprone")
   relocate("com.google.j2objc", "com.nookure.chat.libs.j2objc")
   relocate("org.bstats", "com.nookure.chat.libs.bstats")
+  relocate("org.spongepowered.configurate", "com.nookure.chat.libs.configurate")
+  relocate("org.yaml.snakeyaml", "com.nookure.chat.libs.snakeyaml")
+  relocate("io.leangen.geantyref", "com.nookure.chat.libs.geantyref")
 
   archiveFileName.set("NookureChat-${version}.jar")
 }
 
 allprojects {
-  apply(plugin = "com.github.johnrengelman.shadow")
+  apply(plugin = "com.gradleup.shadow")
   apply(plugin = "java")
+  apply(plugin = rootProject.libs.plugins.spotless.get().pluginId)
 
   repositories {
     mavenCentral()
@@ -46,7 +51,7 @@ allprojects {
 
   java {
     toolchain {
-      languageVersion.set(JavaLanguageVersion.of(21))
+      languageVersion.set(JavaLanguageVersion.of(25))
     }
   }
 
@@ -54,18 +59,29 @@ allprojects {
     compileOnly(rootProject.libs.guice)
     compileOnly(rootProject.libs.adventureApi)
   }
+
+  spotless {
+    java {
+      palantirJavaFormat(rootProject.libs.plugins.palantir.java.format.get().version.displayName)
+      removeUnusedImports();
+      importOrder()
+      trimTrailingWhitespace()
+      endWithNewline()
+      formatAnnotations()
+      targetExclude("build/**", "out/**", "generated/**", "resources/**", "test/**")
+    }
+  }
 }
 
 
 tasks {
   runServer {
-    minecraftVersion("1.21.4")
+    minecraftVersion("26.3")
   }
 }
 
 tasks.withType(xyz.jpenilla.runtask.task.AbstractRun::class) {
   javaLauncher = javaToolchains.launcherFor {
-    vendor = JvmVendorSpec.ORACLE
-    languageVersion = JavaLanguageVersion.of(23)
+    languageVersion = JavaLanguageVersion.of(25)
   }
 }

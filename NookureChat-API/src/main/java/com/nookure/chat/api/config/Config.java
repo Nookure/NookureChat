@@ -9,40 +9,50 @@ import org.spongepowered.configurate.objectmapping.meta.Setting;
 
 @ConfigSerializable
 public class Config {
-  @Setting
-  private boolean debug = false;
-  @Setting
-  private String prefix = "<b><red>Chat</red></b> <b><gray>»</gray></b>";
-  @Setting
-  public Filters filters = new Filters();
-  @Setting
-  public Messages messages = new Messages();
+    @Setting
+    private boolean debug = false;
 
-  @ConfigSerializable
-  public static final class Filters {
     @Setting
-    public FloodConfig flood = new FloodConfig();
-    @Setting
-    public SpamConfig spam = new SpamConfig();
-    @Setting
-    public MessageSpamConfig messageSpam = new MessageSpamConfig();
-    @Setting
-    public BannedWordsConfig bannedWords = new BannedWordsConfig();
-    @Setting
-    public MentionsFilterConfig mentions = new MentionsFilterConfig();
-    @Setting
-    public RepeatedMessageConfig repeatedMessage = new RepeatedMessageConfig();
-    @Setting
-    public CapitalizationFilterConfig capitalization = new CapitalizationFilterConfig();
-  }
+    private String prefix = "<b><red>NookureChat</red></b> <dark_gray>»</dark_gray>";
 
-  public final ClearChatPartial clearChat = new ClearChatPartial();
+    @Setting
+    public Filters filters = new Filters();
 
-  public String getPrefix() {
-    return prefix;
-  }
+    @Setting
+    public Messages messages = new Messages();
 
-  public boolean isDebug() {
-    return debug;
-  }
+    @ConfigSerializable
+    public static final class Filters {
+        @Setting
+        public FloodConfig flood = new FloodConfig();
+
+        @Setting
+        public SpamConfig spam = new SpamConfig();
+
+        @Setting
+        public MessageSpamConfig messageSpam = new MessageSpamConfig();
+
+        @Setting
+        public BannedWordsConfig bannedWords = new BannedWordsConfig();
+
+        @Setting
+        public MentionsFilterConfig mentions = new MentionsFilterConfig();
+
+        @Setting
+        public RepeatedMessageConfig repeatedMessage = new RepeatedMessageConfig();
+
+        @Setting
+        public CapitalizationFilterConfig capitalization = new CapitalizationFilterConfig();
+    }
+
+    @Setting
+    public ClearChatPartial clearChat = new ClearChatPartial();
+
+    public String getPrefix() {
+        return prefix;
+    }
+
+    public boolean isDebug() {
+        return debug;
+    }
 }

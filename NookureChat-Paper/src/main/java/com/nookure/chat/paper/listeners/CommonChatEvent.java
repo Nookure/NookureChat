@@ -4,129 +4,127 @@ import com.google.inject.Inject;
 import com.nookure.chat.api.Logger;
 import com.nookure.chat.api.TextUtils;
 import com.nookure.chat.api.adapters.PermissionAdapter;
+import com.nookure.chat.api.config.Config;
 import com.nookure.chat.api.config.ConfigurationContainer;
 import com.nookure.chat.api.config.FormatConfig;
 import com.nookure.chat.api.managers.FilterManager;
-import com.nookure.chat.paper.NookureChat;
+import com.nookure.chat.paper.utils.MessageUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReference;
-
 public abstract class CommonChatEvent {
-  @Inject
-  private FilterManager filterManager;
-  @Inject
-  private ConfigurationContainer<FormatConfig> formatConfig;
-  @Inject
-  private PermissionAdapter permissionAdapter;
-  @Inject
-  private Logger logger;
+    @Inject
+    protected FilterManager filterManager;
 
-  @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-  public boolean check(@NotNull Player player, @NotNull String message) {
-    for (var filter : filterManager.getSortedFilters().values()) {
-      if (
-          (Objects.equals(filter.getFilterData().permission(), "") ||
-              !player.hasPermission(filter.getFilterData().permission())
-          ) && !filter.check(player, message)
-      ) {
-        return false;
-      }
+    @Inject
+    protected ConfigurationContainer<Config> config;
+
+    @Inject
+    protected ConfigurationContainer<FormatConfig> formatConfig;
+
+    @Inject
+    protected PermissionAdapter permissionAdapter;
+
+    @Inject
+    protected Logger logger;
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    public boolean check(@NotNull Player player, @NotNull String message) {
+        for (var filter : filterManager.getSortedFilters()) {
+            String permission = filter.getFilterData().permission();
+            if ((permission == null || permission.isEmpty() || !player.hasPermission(permission))
+                    && !filter.check(player, message)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
-    return true;
-  }
+    public Component decorate(@NotNull Player player, @NotNull String rawMessage) {
+        String message = rawMessage;
+        for (var filter : filterManager.getSortedFilters()) {
+            if (filter.getFilterData().name().equals("mentions")) {
+                // Mentions are formatted on the Component level to preserve formatting
+                continue;
+            }
+            String permission = filter.getFilterData().permission();
+            if (permission == null || permission.isEmpty() || !player.hasPermission(permission)) {
+                message = filter.modify(player, message);
+            }
+        }
 
-  public Component format(@NotNull Player player, @NotNull String message) {
-    String group = permissionAdapter.getHighestGroup(player);
+        Component messageComponent;
+        if (player.hasPermission("nookurechat.color")) {
+            messageComponent = TextUtils.CHAT_FORMATTER.deserialize(TextUtils.toMM(message));
+        } else {
+            messageComponent = Component.text(message);
+        }
 
-    AtomicReference<String> prefix = new AtomicReference<>(formatConfig.get().getDefaultPrefix());
-    AtomicReference<String> suffix = new AtomicReference<>(formatConfig.get().getDefaultSuffix());
-    AtomicReference<String> format = new AtomicReference<>(formatConfig.get().getDefaultFormat());
+        if (config.get().filters.mentions.isEnabled()) {
+            for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+                if (onlinePlayer.getUniqueId().equals(player.getUniqueId())) {
+                    continue;
+                }
 
-    logger.debug("User %s with group %s sent a message: %s", player.getName(), group, message);
+                String targetName = onlinePlayer.getName();
+                if (message.contains(targetName)) {
+                    String replacementStr =
+                            config.get().filters.mentions.getNameReplacement().replace("{player}", targetName);
+                    Component replacementCmp = MessageUtils.cmp(replacementStr);
+                    messageComponent = messageComponent.replaceText(
+                            b -> b.matchLiteral(targetName).replacement(replacementCmp));
+                }
+            }
+        }
 
-    if (formatConfig.get().getGroups().containsKey(group)) {
-      FormatConfig.Group groupConfig = formatConfig.get().getGroups().get(group);
-
-      prefix.set(groupConfig.getPrefix());
-      suffix.set(groupConfig.getSuffix());
-      format.set(groupConfig.getFormat().replace("{default}", format.get()));
+        return messageComponent;
     }
 
-    if (formatConfig.get().hoverFormat.isEnabled()) {
-      String text = TextUtils.processPlaceholders(
-          player,
-          String.join("\n", formatConfig.get().hoverFormat.getLines())
-      );
+    public Component format(
+            @NotNull Player player, @NotNull Component sourceDisplayName, @NotNull Component messageComponent) {
+        String group = permissionAdapter.getHighestGroup(player);
 
-      format.set(format.get().replace("{displayname}",
-          "<hover:show_text:'{replace_text}'>{displayname}</hover>"
-              .replace(
-                  "{replace_text}",
-                  text
-              )
-          )
-      );
+        String prefix = formatConfig.get().getDefaultPrefix();
+        String suffix = formatConfig.get().getDefaultSuffix();
+        String format = formatConfig.get().getDefaultFormat();
 
-      format.set(format.get().replace("{hover_start}", "<hover:show_text:'{replace_text}'>"
-          .replace(
-              "{replace_text}",
-              text
-          )
-      ));
+        logger.debug("User %s with group %s formatting message", player.getName(), group);
 
-      format.set(format.get().replace("{hover_end}", "</hover>"));
+        if (formatConfig.get().getGroups().containsKey(group)) {
+            FormatConfig.Group groupConfig = formatConfig.get().getGroups().get(group);
+            prefix = groupConfig.getPrefix();
+            suffix = groupConfig.getSuffix();
+            format = groupConfig.getFormat().replace("{default}", format);
+        }
+
+        if (formatConfig.get().hoverFormat.isEnabled()) {
+            String text = TextUtils.processPlaceholders(
+                    player, String.join("\n", formatConfig.get().hoverFormat.getLines()));
+
+            format = format.replace("{displayname}", "<hover:show_text:'" + text + "'>{displayname}</hover>");
+            format = format.replace("{hover_start}", "<hover:show_text:'" + text + "'>");
+            format = format.replace("{hover_end}", "</hover>");
+        }
+
+        format = format.replace("{prefix}", prefix).replace("{suffix}", suffix);
+        format = TextUtils.toMM(TextUtils.processPlaceholders(player, format));
+
+        Component formatted = MiniMessage.miniMessage().deserialize(format);
+
+        formatted = formatted.replaceText(builder -> {
+            builder.matchLiteral("{displayname}");
+            builder.replacement(sourceDisplayName);
+        });
+
+        formatted = formatted.replaceText(builder -> {
+            builder.matchLiteral("{message}");
+            builder.replacement(messageComponent);
+        });
+
+        return formatted;
     }
-
-    format.set(TextUtils.toMM(TextUtils.processPlaceholders(player, format.get())));
-
-    if (format.get().contains("{displayname}") && message.contains("{message}") && NookureChat.VERSION >= 16) {
-      format.set(format.get()
-          .replace("{displayname}", "%s")
-          .replace("{message}", "%s")
-      );
-    } else {
-      format.set(format.get().replace("%", "%%"));
-      if (NookureChat.VERSION < 16) {
-        format.set(format.get()
-            .replace("{displayname}", player.getDisplayName())
-        );
-      } else {
-        format.set(format.get()
-            .replace("{displayname}", MiniMessage.miniMessage().serialize(player.displayName()))
-        );
-      }
-    }
-
-    format.set(format.get()
-        .replace("{prefix}", prefix.get())
-        .replace("{suffix}", suffix.get())
-    );
-
-    Component formatted = MiniMessage.miniMessage().deserialize(format.get());
-    Component messageComponent;
-
-    if (player.hasPermission("nookurechat.color")) {
-      for (var filter : filterManager.getFilters().values()) {
-        message = filter.modify(player, message);
-      }
-
-      messageComponent = TextUtils.CHAT_FORMATTER.deserialize(TextUtils.toMM(message));
-    } else {
-      messageComponent = PlainTextComponentSerializer.plainText().deserialize(message);
-    }
-
-    formatted = formatted.replaceText(builder -> {
-      builder.matchLiteral("{message}");
-      builder.replacement(messageComponent);
-    });
-
-    return formatted;
-  }
 }

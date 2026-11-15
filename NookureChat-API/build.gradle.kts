@@ -1,10 +1,9 @@
 plugins {
-  id("net.kyori.blossom") version "2.1.0"
+  id("net.kyori.blossom") version "2.2.0"
 }
 
 dependencies {
   compileOnly(libs.paperApi)
-  compileOnly(libs.adventureBukkit)
   compileOnly(libs.adventureLegacy)
   compileOnly(libs.adventureApi)
   compileOnly(libs.miniMessage)
@@ -15,6 +14,7 @@ dependencies {
 
   testImplementation(platform("org.junit:junit-bom:5.9.1"))
   testImplementation("org.junit.jupiter:junit-jupiter")
+  testRuntimeOnly("org.junit.platform:junit-platform-launcher")
   testImplementation(libs.bundles.adventure)
   testImplementation(libs.guice)
 }

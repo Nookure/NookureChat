@@ -6,42 +6,45 @@ import org.spongepowered.configurate.objectmapping.meta.Setting;
 
 @ConfigSerializable
 public class MentionsFilterConfig extends FilterConfig {
-  @Setting
-  private boolean enabled = true;
+    @Setting
+    private boolean enabled = true;
 
-  @Setting
-  private String title = "<red>Mentioned by {player}";
-  @Setting
-  private String subtitle = "<gray>You can see the message in the chat";
-  @Setting
-  private String nameReplacement = "<gold>@{player}</gold>";
-  @Setting
-  public SoundPartial sound = new SoundPartial();
+    @Setting
+    private String title = "<red><b>Mentioned!</b></red>";
 
-  @Override
-  public boolean isEnabled() {
-    return enabled;
-  }
+    @Setting
+    private String subtitle = "<white>{player}</white> <gray>mentioned you in chat</gray>";
 
-  /**
-   * This filter doesn't have a deny message.
-   *
-   * @return null
-   */
-  @Override
-  public String getDenyMessage() {
-    return null;
-  }
+    @Setting
+    private String nameReplacement = "<gold>@{player}</gold>";
 
-  public String getTitle() {
-    return title;
-  }
+    @Setting
+    public SoundPartial sound = new SoundPartial();
 
-  public String getSubtitle() {
-    return subtitle;
-  }
+    @Override
+    public boolean isEnabled() {
+        return enabled;
+    }
 
-  public String getNameReplacement() {
-    return nameReplacement;
-  }
+    /**
+     * This filter doesn't have a deny message.
+     *
+     * @return null
+     */
+    @Override
+    public String getDenyMessage() {
+        return null;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getSubtitle() {
+        return subtitle;
+    }
+
+    public String getNameReplacement() {
+        return nameReplacement;
+    }
 }

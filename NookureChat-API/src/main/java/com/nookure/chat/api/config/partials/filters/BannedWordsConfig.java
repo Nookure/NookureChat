@@ -5,17 +5,20 @@ import org.spongepowered.configurate.objectmapping.meta.Setting;
 
 @ConfigSerializable
 public class BannedWordsConfig extends FilterConfig {
-  @Setting
-  private boolean enabled = true;
-  @Setting
-  private String denyMessage = "<red>You are not allowed to say that!";
-  @Override
-  public boolean isEnabled() {
-    return enabled;
-  }
+    @Setting
+    private boolean enabled = true;
 
-  @Override
-  public String getDenyMessage() {
-    return denyMessage;
-  }
+    @Setting
+    private String denyMessage =
+            "{prefix} <red>✕</red> <gray>That language is <red>not allowed</red> on this server.</gray>";
+
+    @Override
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    @Override
+    public String getDenyMessage() {
+        return denyMessage;
+    }
 }

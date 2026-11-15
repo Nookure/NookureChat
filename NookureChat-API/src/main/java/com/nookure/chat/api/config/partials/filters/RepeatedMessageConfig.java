@@ -5,24 +5,27 @@ import org.spongepowered.configurate.objectmapping.meta.Setting;
 
 @ConfigSerializable
 public class RepeatedMessageConfig extends FilterConfig {
-  @Setting
-  private boolean enabled = true;
-  @Setting
-  private String denyMessage = "&cYou can't send the same message twice! Please wait {time} seconds.";
-  @Setting
-  private int timeRestriction = 60;
+    @Setting
+    private boolean enabled = true;
 
-  @Override
-  public boolean isEnabled() {
-    return enabled;
-  }
+    @Setting
+    private String denyMessage =
+            "{prefix} <#FFAA00>⚠</#FFAA00> <gray>Please do not repeat the same message. Wait <#FFAA00>{time}s</#FFAA00>.</gray>";
 
-  @Override
-  public String getDenyMessage() {
-    return denyMessage;
-  }
+    @Setting
+    private int timeRestriction = 60;
 
-  public int getTimeRestriction() {
-    return timeRestriction;
-  }
+    @Override
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    @Override
+    public String getDenyMessage() {
+        return denyMessage;
+    }
+
+    public int getTimeRestriction() {
+        return timeRestriction;
+    }
 }

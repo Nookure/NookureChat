@@ -8,7 +8,9 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ChatFilterData {
-  String name();
-  ChatFilterPriority priority() default ChatFilterPriority.NORMAL;
-  String permission() default "";
+    String name();
+
+    ChatFilterPriority priority() default ChatFilterPriority.NORMAL;
+
+    String permission() default "";
 }

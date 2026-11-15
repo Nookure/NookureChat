@@ -1,5 +1,6 @@
 package com.nookure.chat.api.config.serializer;
 
+import java.lang.reflect.Type;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.bukkit.Sound;
@@ -9,25 +10,41 @@ import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.serialize.SerializationException;
 import org.spongepowered.configurate.serialize.TypeSerializer;
 
-import java.lang.reflect.Type;
-import java.util.Objects;
-
 public class BukkitSoundSerializer implements TypeSerializer<Sound> {
-  @Override
-  public Sound deserialize(@NotNull Type type, @NotNull ConfigurationNode node) throws SerializationException {
-    if (node.getString() != null) {
-      return null;
+    @Override
+    public Sound deserialize(@NotNull Type type, @NotNull ConfigurationNode node) throws SerializationException {
+        String value = node.getString();
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+
+        String normalized = value.trim().toLowerCase(java.util.Locale.ROOT);
+        NamespacedKey key;
+        if (normalized.contains(":")) {
+            key = NamespacedKey.fromString(normalized);
+        } else {
+            key = NamespacedKey.minecraft(normalized.replace('_', '.'));
+        }
+
+        Sound sound = key != null ? Registry.SOUND_EVENT.get(key) : null;
+        if (sound == null) {
+            NamespacedKey fallback = NamespacedKey.minecraft(normalized.replace('.', '_'));
+            sound = Registry.SOUND_EVENT.get(fallback);
+        }
+
+        return sound;
     }
 
-    return Registry.SOUNDS.get(NamespacedKey.minecraft(node.getString()));
-  }
+    @Override
+    public void serialize(@NotNull Type type, @Nullable Sound obj, @NotNull ConfigurationNode node)
+            throws SerializationException {
+        if (obj == null) {
+            return;
+        }
 
-  @Override
-  public void serialize(@NotNull Type type, @Nullable Sound obj, @NotNull ConfigurationNode node) throws SerializationException {
-    if (obj == null) {
-      return;
+        NamespacedKey key = Registry.SOUND_EVENT.getKey(obj);
+        if (key != null) {
+            node.set(key.asString());
+        }
     }
-
-    node.set(Objects.requireNonNull(Registry.SOUNDS.getKey(obj)).getKey());
-  }
 }

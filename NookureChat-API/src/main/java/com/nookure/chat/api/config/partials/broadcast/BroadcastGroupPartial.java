@@ -1,59 +1,61 @@
 package com.nookure.chat.api.config.partials.broadcast;
 
+import java.util.List;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Setting;
 
-import java.util.List;
-
 @ConfigSerializable
 public class BroadcastGroupPartial {
-  @Setting
-  private boolean enabled = true;
-  @Setting
-  private int interval = 60;
-  @Setting
-  private String header = "<dark_gray><st>------------------------";
-  @Setting
-  private String footer = "<dark_gray><st>------------------------";
-  @Setting
-  private String prefix = "<b><gold>Broadcast</gold> <dark_gray>»</dark_gray></b>";
-  @Setting
-  private SoundPartial sound = new SoundPartial();
-  @Setting
-  private List<String> messages = List.of(
-      "{prefix} <gray>Join our discord server: <hover:show_text:'<b><gold>Click to join</gold></b>'><click:open_url:'https://discord.gg/'>https://discord.gg/</click></hover>",
-      """
-          {center}<gray>¿Do you find any hacker?</gray>
+    @Setting
+    private boolean enabled = true;
 
-          {center}<gray>Report it on our <hover:show_text:'[|light_purple|]Open Discord'><click:open_url:'discord.gg'><blue>discord</blue></click></hover> server
-                """
-  );
+    @Setting
+    private int interval = 60;
 
-  public boolean isEnabled() {
-    return enabled;
-  }
+    @Setting
+    private String header = "<dark_gray><st>-----------------------------------------------------</st></dark_gray>";
 
-  public int getInterval() {
-    return interval;
-  }
+    @Setting
+    private String footer = "<dark_gray><st>-----------------------------------------------------</st></dark_gray>";
 
-  public String getHeader() {
-    return header;
-  }
+    @Setting
+    private String prefix = "<b><red>Broadcast</red></b> <dark_gray>»</dark_gray>";
 
-  public String getFooter() {
-    return footer;
-  }
+    @Setting
+    private SoundPartial sound = new SoundPartial();
 
-  public String getPrefix() {
-    return prefix;
-  }
+    @Setting
+    private List<String> messages = List.of(
+            "{prefix} <gray>Join our official Discord community: <hover:show_text:'<gold><b>Click to join!</b></gold>'><click:open_url:'https://discord.gg/'><red><u>discord.gg/community</u></red></click></hover></gray>",
+            """
+      <gray>Did you spot a player breaking the rules?</gray>
+      <gray>Report them on Discord: <hover:show_text:'<gold>Open Discord</gold>'><click:open_url:'https://discord.gg/'><red><u>discord.gg/reports</u></red></click></hover></gray>""");
 
-  public SoundPartial getSound() {
-    return sound;
-  }
+    public boolean isEnabled() {
+        return enabled;
+    }
 
-  public List<String> getMessages() {
-    return messages;
-  }
+    public int getInterval() {
+        return interval;
+    }
+
+    public String getHeader() {
+        return header;
+    }
+
+    public String getFooter() {
+        return footer;
+    }
+
+    public String getPrefix() {
+        return prefix;
+    }
+
+    public SoundPartial getSound() {
+        return sound;
+    }
+
+    public List<String> getMessages() {
+        return messages;
+    }
 }

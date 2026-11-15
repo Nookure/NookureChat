@@ -5,22 +5,23 @@ import org.spongepowered.configurate.objectmapping.meta.Setting;
 
 @ConfigSerializable
 public class CapitalizationFilterConfig extends FilterConfig {
-  @Setting
-  private boolean enabled = true;
-  @Setting
-  boolean addDot = true;
+    @Setting
+    private boolean enabled = true;
 
-  @Override
-  public boolean isEnabled() {
-    return enabled;
-  }
+    @Setting
+    boolean addDot = true;
 
-  public boolean addDot() {
-    return addDot;
-  }
+    @Override
+    public boolean isEnabled() {
+        return enabled;
+    }
 
-  @Override
-  public String getDenyMessage() {
-    return null;
-  }
+    public boolean addDot() {
+        return addDot;
+    }
+
+    @Override
+    public String getDenyMessage() {
+        return null;
+    }
 }
